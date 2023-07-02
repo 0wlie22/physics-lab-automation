@@ -1,6 +1,15 @@
 import numpy as np
 
 def count_error(data: list[float]) -> None:
+    """
+    Counts errors in a dataset.
+
+    Args:
+        data (list[float]): A list of float values representing the dataset.
+
+    Returns:
+        None
+    """
     # Finding the average
     average: float = np.average(data)
     print(average)
