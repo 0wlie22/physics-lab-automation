@@ -91,11 +91,11 @@ def format_template(**values: dict[str, Any]) -> str:
     return formatted_template
 
 
-def get_student_coef(n: int, cp: float = 0.95) -> float:
+def get_student_coef(n: int | np.inf, cp: float = 0.95) -> float:
     """Get student coefficient for specified measurement count and confidence probability.
 
     Args:
-        n (int): measurement count.
+        n (int | numpy.inf): measurement count.
         cp (float): confidence probability.
 
     Returns:
