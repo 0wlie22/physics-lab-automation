@@ -1,10 +1,20 @@
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import scipy
 
 
-def count_error(data: list[float, ...], *, check_rude_values: bool = False):
+def count_error(data: list[float, ...], *, check_rude_values: bool = False) -> tuple[float, float]:
+    """Count average and squared error for given data.
+
+    Args:
+        data (list[float, ...]): data to count average and squared error.
+        check_rude_values (bool, optional): whether to check for rude values. Defaults to False.
+
+    Returns:
+        tuple[float, float]: average and squared error.
+    """
     # Finding the average
     average = np.average(data)
 
@@ -23,18 +33,37 @@ def count_error(data: list[float, ...], *, check_rude_values: bool = False):
     return average, squared_error
 
 
-def delete_rude_values(data: list[float, ...], squared_error: float, average: float):
+def delete_rude_values(data: list[float, ...], squared_error: float, average: float) -> tuple[list[float, ...], bool]:
+    """Delete rude values from data.
+
+    Args:
+        data (list[float, ...]): data to delete rude values from.
+        squared_error (float): squared error.
+        average (float): average error.
+
+    Returns:
+        tuple[list[float, ...], bool]: data without rude values and whether rude values were found.
+    """
     found_rude_value = False
 
     for i in data:
+        # TODO(TheCrabilia): extract 2.29 to constant. What the name should be?
         if abs(i - average) / squared_error > 2.29:
             data.remove(i)
             found_rude_value = True
     return data, found_rude_value
 
 
-def format_template(**kwargs):
-    values = kwargs
+def format_template(**values: dict[str, Any]) -> str:
+    """Format template with given values.
+
+    Args:
+        **values: values to format template with.
+
+    Returns:
+        str: formatted template.
+    """
+    # TODO(TheCrabilia): make author configurable
     formatted_template = "<div align=right>Darja Sedova, 221RDB030</div>"
 
     with Path.open("template.md") as f:
@@ -65,11 +94,11 @@ def get_student_coef(n: int, cp: float = 0.95) -> float:
     """Get student coefficient for specified measurement count and confidence probability.
 
     Args:
-        n (int): measurement count
-        cp (float): confidence probability
+        n (int): measurement count.
+        cp (float): confidence probability.
 
     Returns:
-        float: student coefficient
+        float: student coefficient.
     """
     return scipy.stats.t.ppf((1 + cp) / 2, n - 1)
 
