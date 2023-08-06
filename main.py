@@ -64,6 +64,7 @@ def format_template(**values: dict[str, Any]) -> str:
         str: formatted template.
     """
     # TODO(TheCrabilia): make author configurable
+    # https://github.com/0wlie22/physics-lab-automation/issues/5
     formatted_template = "<div align=right>Darja Sedova, 221RDB030</div>"
 
     with Path.open("template.md") as f:
