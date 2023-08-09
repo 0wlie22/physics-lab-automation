@@ -4,13 +4,17 @@ from typing import Any
 import numpy as np
 import scipy
 
+TEMPLATE_FILE = "template.md"
 
-def count_error(data: list[float, ...], *, check_rude_values: bool = False) -> tuple[float, float]:
+
+def count_error(
+    data: list[float], *, check_gross_errors: bool = False
+) -> tuple[float, float]:
     """Count average and squared error for given data.
 
     Args:
         data (list[float, ...]): data to count average and squared error.
-        check_rude_values (bool, optional): whether to check for rude values. Defaults to False.
+        check_gross_errors (bool, optional): whether to check for rude values. Defaults to False.
 
     Returns:
         tuple[float, float]: average and squared error.
@@ -24,17 +28,19 @@ def count_error(data: list[float, ...], *, check_rude_values: bool = False) -> t
         squared_error += (i - average) ** 2
     squared_error = (squared_error / (len(data) * (len(data) - 1))) ** 0.5
 
-    if not check_rude_values:
-        data, found_rude_value = delete_rude_values(data, squared_error, average)
-        if found_rude_value:
-            average, squared_error = count_error(data, check_rude_values=True)
+    if not check_gross_errors:
+        data, found_gross_error = delete_gross_errors(data, squared_error, average)
+        if found_gross_error:
+            average, squared_error = count_error(data, check_gross_errors=True)
             return average, squared_error
 
     return average, squared_error
 
 
-def delete_rude_values(data: list[float, ...], squared_error: float, average: float) -> tuple[list[float, ...], bool]:
-    """Delete rude values from data.
+def delete_gross_errors(
+    data: list[float], squared_error: float, average: float
+) -> tuple[list[float], bool]:
+    """Delete gross errors from data.
 
     Args:
         data (list[float, ...]): data to delete rude values from.
@@ -44,14 +50,14 @@ def delete_rude_values(data: list[float, ...], squared_error: float, average: fl
     Returns:
         tuple[list[float, ...], bool]: data without rude values and whether rude values were found.
     """
-    found_rude_value = False
+    found_gross_error = False
 
     for i in data:
         # TODO(TheCrabilia): extract 2.29 to constant. What the name should be?
         if abs(i - average) / squared_error > 2.29:
             data.remove(i)
-            found_rude_value = True
-    return data, found_rude_value
+            found_gross_error = True
+    return data, found_gross_error
 
 
 def format_template(**values: dict[str, Any]) -> str:
@@ -65,9 +71,9 @@ def format_template(**values: dict[str, Any]) -> str:
     """
     # TODO(TheCrabilia): make author configurable
     # https://github.com/0wlie22/physics-lab-automation/issues/5
-    formatted_template = "<div align=right>Darja Sedova, 221RDB030</div>"
+    formatted_template = "<div align=right>Darja Sedova, 221RDB030</div>\n"
 
-    with Path.open("template.md") as f:
+    with Path.open(TEMPLATE_FILE) as f:
         symbol = f.read(1)
 
         while symbol:
@@ -91,7 +97,7 @@ def format_template(**values: dict[str, Any]) -> str:
     return formatted_template
 
 
-def get_student_coef(n: int | np.inf, cp: float = 0.95) -> float:
+def get_student_coef(n: int or np.inf, cp: float = 0.95) -> float:
     """Get student coefficient for specified measurement count and confidence probability.
 
     Args:
