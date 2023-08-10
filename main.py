@@ -73,12 +73,12 @@ def format_template(**values: dict[str, Any]) -> str:
     # https://github.com/0wlie22/physics-lab-automation/issues/5
     formatted_template = "<div align=right>Darja Sedova, 221RDB030</div>\n"
 
-    with Path.open(TEMPLATE_FILE) as f:
-        symbol = f.read(1)
+    with Path.open(TEMPLATE_FILE, "r", encoding="latin-1") as file:
+        symbol = file.read(1)
 
         while symbol:
             if symbol == "<":
-                next_symbol = f.read(1)
+                next_symbol = file.read(1)
 
                 if next_symbol == "<":
                     formatted_template += "<"
@@ -86,28 +86,28 @@ def format_template(**values: dict[str, Any]) -> str:
                     key = ""
                     while next_symbol != ">":
                         key += next_symbol
-                        next_symbol = f.read(1)
+                        next_symbol = file.read(1)
 
                     formatted_template += str(values.get(key))
             else:
                 formatted_template += symbol
 
-            symbol = f.read(1)
+            symbol = file.read(1)
 
     return formatted_template
 
 
-def get_student_coef(n: int or np.inf, cp: float = 0.95) -> float:
+def get_student_coef(count: int or np.inf, probability: float = 0.95) -> float:
     """Get student coefficient for specified measurement count and confidence probability.
 
     Args:
-        n (int | numpy.inf): measurement count.
-        cp (float): confidence probability.
+        count (int | numpy.inf): measurement count.
+        probability (float): confidence probability.
 
     Returns:
         float: student coefficient.
     """
-    return scipy.stats.t.ppf((1 + cp) / 2, n - 1)
+    return scipy.stats.t.ppf((1 + probability) / 2, count - 1)
 
 
 def main() -> None:  # noqa: D103
