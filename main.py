@@ -116,7 +116,7 @@ def main() -> None:  # noqa: D103
     absolute_error = squared_error * 2.57
     relative_error = absolute_error / average * 100
 
-    print(
+    result = (
         format_template(
             average=f"{average:.2f}",
             squared_error=f"{squared_error:.3f}",
@@ -126,6 +126,10 @@ def main() -> None:  # noqa: D103
             value=r"\gamma",
         ),
     )
+
+    with Path.open("result.md", "w", encoding="latin-1") as file:
+        for line in result:
+            file.write(line)
 
 
 if __name__ == "__main__":
