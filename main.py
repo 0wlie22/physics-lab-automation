@@ -7,9 +7,13 @@ import scipy
 TEMPLATE_FILE = "template.md"
 INPUT_FILE = "input.txt"
 RESULT_FILE = "result.md"
+START_LENGTH = 0
+END_LENGTH = 0
 
 
-def count_error(data: list[float], *, check_gross_errors: bool = False) -> tuple[float, float]:
+def count_error(
+    data: list[float], *, check_gross_errors: bool = False
+) -> tuple[float, float]:
     """Count average and squared error for given data.
 
     Args:
@@ -37,7 +41,9 @@ def count_error(data: list[float], *, check_gross_errors: bool = False) -> tuple
     return average, squared_error
 
 
-def delete_gross_errors(data: list[float], squared_error: float, average: float) -> tuple[list[float], bool]:
+def delete_gross_errors(
+    data: list[float], squared_error: float, average: float
+) -> tuple[list[float], bool]:
     """Delete gross errors from data.
 
     Args:
@@ -55,6 +61,7 @@ def delete_gross_errors(data: list[float], squared_error: float, average: float)
         if abs(i - average) / squared_error > 2.29:
             data.remove(i)
             found_gross_error = True
+
     return data, found_gross_error
 
 
@@ -107,13 +114,14 @@ def get_student_coef(count: int or np.inf, probability: float = 0.95) -> float:
 
 
 def get_input_data() -> list[float]:
-    """Get data and author from input file. Input file should be in the following format:
+    """Get data and author from input file.
+
+    Input file should be in the following format:
     <author>
     <data1, data2, ...>
 
-    Returns:
+    Returns
         list[str]
-
     """
     with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
         data = file.readlines()
@@ -121,15 +129,16 @@ def get_input_data() -> list[float]:
 
 
 def get_author() -> str:
-    """Get author from input file. Input file should be in the following format:
-    <author>
-    <data1, data2, ...>
+    """Get author from input file.
 
-    Returns:
+    Input file should be in the following format:
+    <author>
+    <data1, data2, ...>.
+
+    Returns
         str
 
     """
-    # return without \n
     with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
         data = file.readlines()
         return data[0][:-1]
@@ -137,6 +146,7 @@ def get_author() -> str:
 
 def main() -> None:  # noqa: D103
     data = get_input_data()
+    START_LENGTH = len(data)
     average, squared_error = count_error(data)
     absolute_error = squared_error * 2.57
     relative_error = absolute_error / average * 100
@@ -147,18 +157,12 @@ def main() -> None:  # noqa: D103
             squared_error=f"{squared_error:.3f}",
             absolute_error=f"{absolute_error:.2f}",
             relative_error=f"{relative_error:.2f}",
-            length=len(data),
-            value=r"\gamma",
+            length=START_LENGTH,
+            value=r"\Omega",
         ),
     )
 
-    result_file = Path(RESULT_FILE)
-    if result_file.exists():
-        print("result.md already exists. Overwrite? [y/n]", end=" ")
-        if input() not in "yY":
-            return
-
-    with result_file.open("w", encoding="latin-1") as file:
+    with Path.open(RESULT_FILE, "w", encoding="latin-1") as file:
         for line in result:
             file.write(line)
 
