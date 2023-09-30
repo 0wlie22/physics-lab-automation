@@ -6,7 +6,7 @@
 
 1. Vidējā aritmētiskā vērtība:
 
-${\VAR{value}}_{vid} = \frac1{\VAR{length}} \sum^{\VAR{length}}_{i=1} {\VAR{value}}_i = \VAR{average}$
+${\VAR{value}}_{vid} = \frac1{\VAR{length}} \sum\limits^{\VAR{length}}_{i=1} {\VAR{value}}_i = \VAR{average}$
 
 2. Vidējā kvadrātiskā kļūda:
 
@@ -16,7 +16,7 @@ $s_{\VAR{value}} = \sqrt{\frac{\sum\limits^{\VAR{length}}_{i=1} {\VAR{value}}_i 
 
 * Vidējā aritmētiskā vērtība:
 
-    ${\VAR{value}}_{vid} = \frac1{\VAR{length}} \sum^{\VAR{length}}_{i=1} {\VAR{value}}_i = \VAR{average}$
+    ${\VAR{value}}_{vid} = \frac1{\VAR{length}} \sum\limits^{\VAR{length}}_{i=1} {\VAR{value}}_i = \VAR{average}$
 
 * Vidējā kvadrātiskā kļūda:
 
