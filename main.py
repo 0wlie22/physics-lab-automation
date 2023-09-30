@@ -15,10 +15,12 @@ def count_error(data: list[float], *, check_gross_errors: bool = False) -> tuple
     """Count average and squared error for given data.
 
     Args:
+    ----
         data (list[float, ...]): data to count average and squared error.
         check_gross_errors (bool, optional): whether to check for rude values. Defaults to False.
 
     Returns:
+    -------
         tuple[float, float]: average and squared error.
     """
     # Finding the average
@@ -43,11 +45,13 @@ def delete_gross_errors(data: list[float], squared_error: float, average: float)
     """Delete gross errors from data.
 
     Args:
+    ----
         data (list[float, ...]): data to delete rude values from.
         squared_error (float): squared error.
         average (float): average error.
 
     Returns:
+    -------
         tuple[list[float, ...], bool]: data without rude values and whether rude values were found.
     """
     found_gross_error = False
@@ -64,9 +68,11 @@ def format_template(**values: dict[str, Any]) -> str:
     """Format template with given values.
 
     Args:
+    ----
         **values: values to format template with.
 
     Returns:
+    -------
         str: formatted template.
     """
     renderer = Renderer()
@@ -77,10 +83,12 @@ def get_student_coef(count: Union[int, np.Inf], probability: float = 0.95) -> fl
     """Get student coefficient for specified measurement count and confidence probability.
 
     Args:
+    ----
         count (int | numpy.Inf): measurement count.
         probability (float): confidence probability.
 
     Returns:
+    -------
         float: student coefficient.
     """
     return scipy.stats.t.ppf((1 + probability) / 2, count - 1)
@@ -93,7 +101,8 @@ def get_input_data(file: Path) -> list[float]:
     <author>
     <data1 data2 ...>
 
-    Returns:
+    Returns
+    -------
         list[float]: data from input file.
 
     """
@@ -103,6 +112,13 @@ def get_input_data(file: Path) -> list[float]:
 
 
 def handle_file_output(file: Path, data: str) -> None:
+    """Handle file output.
+
+    Args:
+    ----
+        file (Path): file to write data to.
+        data (str): data to write to file.
+    """
     if file.exists():
         print(f"{file} already exists. Overwrite? [y/n]", end=" ")
         if input() not in "yY":
@@ -115,7 +131,8 @@ def handle_file_output(file: Path, data: str) -> None:
 def parse_arguments() -> Namespace:
     """Parses CLI arguments.
 
-    Returns:
+    Returns
+    -------
         Namespace: parsed arguments.
     """
     parser = ArgumentParser()
