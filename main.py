@@ -9,9 +9,7 @@ INPUT_FILE = "input.txt"
 RESULT_FILE = "result.md"
 
 
-def count_error(
-    data: list[float], *, check_gross_errors: bool = False
-) -> tuple[float, float]:
+def count_error(data: list[float], *, check_gross_errors: bool = False) -> tuple[float, float]:
     """Count average and squared error for given data.
 
     Args:
@@ -39,9 +37,7 @@ def count_error(
     return average, squared_error
 
 
-def delete_gross_errors(
-    data: list[float], squared_error: float, average: float
-) -> tuple[list[float], bool]:
+def delete_gross_errors(data: list[float], squared_error: float, average: float) -> tuple[list[float], bool]:
     """Delete gross errors from data.
 
     Args:
@@ -156,7 +152,13 @@ def main() -> None:  # noqa: D103
         ),
     )
 
-    with Path.open(RESULT_FILE, "w", encoding="latin-1") as file:
+    result_file = Path(RESULT_FILE)
+    if result_file.exists():
+        print("result.md already exists. Overwrite? [y/n]", end=" ")
+        if input() not in "yY":
+            return
+
+    with result_file.open("w", encoding="latin-1") as file:
         for line in result:
             file.write(line)
 
