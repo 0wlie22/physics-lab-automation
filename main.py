@@ -6,9 +6,9 @@ from typing import Any, Union
 import numpy as np
 import scipy
 
-TEMPLATE_FILE = "template.md"
+from renderer import Renderer
+
 INPUT_FILE = "input.txt"
-RESULT_FILE = "result.md"
 
 
 def count_error(data: list[float], *, check_gross_errors: bool = False) -> tuple[float, float]:
@@ -69,30 +69,8 @@ def format_template(**values: dict[str, Any]) -> str:
     Returns:
         str: formatted template.
     """
-    formatted_template = f"<div align=right>{get_author()}</div>\n"
-
-    with Path.open(TEMPLATE_FILE, "r", encoding="latin-1") as file:
-        symbol = file.read(1)
-
-        while symbol:
-            if symbol == "<":
-                next_symbol = file.read(1)
-
-                if next_symbol == "<":
-                    formatted_template += "<"
-                else:
-                    key = ""
-                    while next_symbol != ">":
-                        key += next_symbol
-                        next_symbol = file.read(1)
-
-                    formatted_template += str(values.get(key))
-            else:
-                formatted_template += symbol
-
-            symbol = file.read(1)
-
-    return formatted_template
+    renderer = Renderer()
+    return renderer.render("template.md", values)
 
 
 def get_student_coef(count: Union[int, np.Inf], probability: float = 0.95) -> float:
@@ -108,48 +86,30 @@ def get_student_coef(count: Union[int, np.Inf], probability: float = 0.95) -> fl
     return scipy.stats.t.ppf((1 + probability) / 2, count - 1)
 
 
-def get_input_data() -> list[float]:
+def get_input_data(file: Path) -> list[float]:
     """Get data and author from input file.
 
     Input file should be in the following format:
     <author>
-    <data1, data2, ...>
+    <data1 data2 ...>
 
     Returns:
-        list[str]
+        list[float]: data from input file.
 
     """
-    with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
+    with file.open("r", encoding="latin-1") as file:
         data = file.readlines()
         return [float(i) for i in data[1].split(",")]
 
 
-def get_author() -> str:
-    """Get author from input file.
-
-    Input file should be in the following format:
-    <author>
-    <data1, data2, ...>
-
-    Returns:
-        str
-
-    """
-    # return without \n
-    with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
-        data = file.readlines()
-        return data[0][:-1]
-
-
-def handle_file_output(file: Path, data: tuple[str]) -> None:
+def handle_file_output(file: Path, data: str) -> None:
     if file.exists():
         print(f"{file} already exists. Overwrite? [y/n]", end=" ")
         if input() not in "yY":
             return
 
     with file.open("w", encoding="latin-1") as file:
-        for line in data:
-            file.write(line)
+        file.write(data)
 
 
 def parse_arguments() -> Namespace:
@@ -167,26 +127,23 @@ def parse_arguments() -> Namespace:
 
 
 def main() -> None:  # noqa: D103
-    data = get_input_data()
+    data = get_input_data(args.filename)
     average, squared_error = count_error(data)
     absolute_error = squared_error * 2.57
     relative_error = absolute_error / average * 100
 
-    result = (
-        format_template(
-            average=f"{average:.2f}",
-            squared_error=f"{squared_error:.3f}",
-            absolute_error=f"{absolute_error:.2f}",
-            relative_error=f"{relative_error:.2f}",
-            length=len(data),
-            value=r"\gamma",
-        ),
+    result = format_template(
+        author=args.author,
+        average=f"{average:.2f}",
+        squared_error=f"{squared_error:.3f}",
+        absolute_error=f"{absolute_error:.2f}",
+        relative_error=f"{relative_error:.2f}",
+        length=len(data),
+        value=r"\gamma",
     )
 
     if args.output is None:
-        sys.stdout.reconfigure(encoding="latin-1")
-        for line in result:
-            sys.stdout.write(line)
+        sys.stdout.write(result)
     else:
         handle_file_output(args.output, result)
 
