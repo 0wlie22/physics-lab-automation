@@ -1,5 +1,7 @@
+import sys
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import scipy
@@ -93,11 +95,11 @@ def format_template(**values: dict[str, Any]) -> str:
     return formatted_template
 
 
-def get_student_coef(count: int or np.inf, probability: float = 0.95) -> float:
+def get_student_coef(count: Union[int, np.Inf], probability: float = 0.95) -> float:
     """Get student coefficient for specified measurement count and confidence probability.
 
     Args:
-        count (int | numpy.inf): measurement count.
+        count (int | numpy.Inf): measurement count.
         probability (float): confidence probability.
 
     Returns:
@@ -107,7 +109,9 @@ def get_student_coef(count: int or np.inf, probability: float = 0.95) -> float:
 
 
 def get_input_data() -> list[float]:
-    """Get data and author from input file. Input file should be in the following format:
+    """Get data and author from input file.
+
+    Input file should be in the following format:
     <author>
     <data1, data2, ...>
 
@@ -121,7 +125,9 @@ def get_input_data() -> list[float]:
 
 
 def get_author() -> str:
-    """Get author from input file. Input file should be in the following format:
+    """Get author from input file.
+
+    Input file should be in the following format:
     <author>
     <data1, data2, ...>
 
@@ -133,6 +139,31 @@ def get_author() -> str:
     with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
         data = file.readlines()
         return data[0][:-1]
+
+
+def handle_file_output(file: Path, data: tuple[str]) -> None:
+    if file.exists():
+        print(f"{file} already exists. Overwrite? [y/n]", end=" ")
+        if input() not in "yY":
+            return
+
+    with file.open("w", encoding="latin-1") as file:
+        for line in data:
+            file.write(line)
+
+
+def parse_arguments() -> Namespace:
+    """Parses CLI arguments.
+
+    Returns:
+        Namespace: parsed arguments.
+    """
+    parser = ArgumentParser()
+    parser.add_argument("filename", help="file that contains data to process", type=Path)
+    parser.add_argument("-o", "--output", help="output file name", type=Path)
+    parser.add_argument("-a", "--author", help="author name", type=str)
+
+    return parser.parse_args()
 
 
 def main() -> None:  # noqa: D103
@@ -152,16 +183,14 @@ def main() -> None:  # noqa: D103
         ),
     )
 
-    result_file = Path(RESULT_FILE)
-    if result_file.exists():
-        print("result.md already exists. Overwrite? [y/n]", end=" ")
-        if input() not in "yY":
-            return
-
-    with result_file.open("w", encoding="latin-1") as file:
+    if args.output is None:
+        sys.stdout.reconfigure(encoding="latin-1")
         for line in result:
-            file.write(line)
+            sys.stdout.write(line)
+    else:
+        handle_file_output(args.output, result)
 
 
 if __name__ == "__main__":
+    args = parse_arguments()
     main()
