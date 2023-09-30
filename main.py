@@ -5,6 +5,8 @@ import numpy as np
 import scipy
 
 TEMPLATE_FILE = "template.md"
+INPUT_FILE = "input.txt"
+RESULT_FILE = "result.md"
 
 
 def count_error(
@@ -69,9 +71,7 @@ def format_template(**values: dict[str, Any]) -> str:
     Returns:
         str: formatted template.
     """
-    # TODO(TheCrabilia): make author configurable
-    # https://github.com/0wlie22/physics-lab-automation/issues/5
-    formatted_template = "<div align=right>Darja Sedova, 221RDB030</div>\n"
+    formatted_template = f"<div align=right>{get_author()}</div>\n"
 
     with Path.open(TEMPLATE_FILE, "r", encoding="latin-1") as file:
         symbol = file.read(1)
@@ -110,8 +110,37 @@ def get_student_coef(count: int or np.inf, probability: float = 0.95) -> float:
     return scipy.stats.t.ppf((1 + probability) / 2, count - 1)
 
 
+def get_input_data() -> list[float]:
+    """Get data and author from input file. Input file should be in the following format:
+    <author>
+    <data1, data2, ...>
+
+    Returns:
+        list[str]
+
+    """
+    with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
+        data = file.readlines()
+        return [float(i) for i in data[1].split(",")]
+
+
+def get_author() -> str:
+    """Get author from input file. Input file should be in the following format:
+    <author>
+    <data1, data2, ...>
+
+    Returns:
+        str
+
+    """
+    # return without \n
+    with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
+        data = file.readlines()
+        return data[0][:-1]
+
+
 def main() -> None:  # noqa: D103
-    data = [1.224, 1.333, 1.196, 1.273, 1.220, 1.321, 1.208, 1.212, 1.230, 1.205]
+    data = get_input_data()
     average, squared_error = count_error(data)
     absolute_error = squared_error * 2.57
     relative_error = absolute_error / average * 100
@@ -127,7 +156,7 @@ def main() -> None:  # noqa: D103
         ),
     )
 
-    with Path.open("result.md", "w", encoding="latin-1") as file:
+    with Path.open(RESULT_FILE, "w", encoding="latin-1") as file:
         for line in result:
             file.write(line)
 
