@@ -3,6 +3,7 @@ from typing import Any
 
 import numpy as np
 import scipy
+import math
 
 TEMPLATE_FILE = "template.md"
 INPUT_FILE = "input.txt"
@@ -144,9 +145,19 @@ def get_author() -> str:
         return data[0][:-1]
 
 
+def count_values(data: list[float]) -> list[float]:
+    start_value = 0
+    new_data = []
+    for i in range(len(data)):
+        value = data[i]/(np.cos(math.radians(start_value)))**2
+        new_data.append(value)
+        print(start_value, value, np.cos(math.radians(start_value)))
+        start_value += 5
+
+    return new_data
+
 def main() -> None:  # noqa: D103
-    data = get_input_data()
-    START_LENGTH = len(data)
+    data = count_values(get_input_data())
     average, squared_error = count_error(data)
     absolute_error = squared_error * 2.57
     relative_error = absolute_error / average * 100
