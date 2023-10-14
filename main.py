@@ -1,14 +1,10 @@
+import parser
 import sys
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, Union
 
 import numpy as np
-import scipy
 
-from renderer import Renderer
-
-INPUT_FILE = "input.txt"
+from calculator import Calculator
 
 
 def count_error(data: list[float], *, check_gross_errors: bool = False) -> tuple[float, float]:
@@ -64,36 +60,6 @@ def delete_gross_errors(data: list[float], squared_error: float, average: float)
     return data, found_gross_error
 
 
-def format_template(**values: dict[str, Any]) -> str:
-    """Format template with given values.
-
-    Args:
-    ----
-        **values: values to format template with.
-
-    Returns:
-    -------
-        str: formatted template.
-    """
-    renderer = Renderer()
-    return renderer.render("template.md", values)
-
-
-def get_student_coef(count: Union[int, np.Inf], probability: float = 0.95) -> float:
-    """Get student coefficient for specified measurement count and confidence probability.
-
-    Args:
-    ----
-        count (int | numpy.Inf): measurement count.
-        probability (float): confidence probability.
-
-    Returns:
-    -------
-        float: student coefficient.
-    """
-    return scipy.stats.t.ppf((1 + probability) / 2, count - 1)
-
-
 def get_input_data(file: Path) -> list[float]:
     """Get data and author from input file.
 
@@ -106,9 +72,7 @@ def get_input_data(file: Path) -> list[float]:
         list[float]: data from input file.
 
     """
-    with file.open("r", encoding="latin-1") as file:
-        data = file.readlines()
-        return [float(i) for i in data[1].split(",")]
+    return [float(i) for i in file.read_text().strip().split(" ")]
 
 
 def handle_file_output(file: Path, data: str) -> None:
@@ -124,47 +88,25 @@ def handle_file_output(file: Path, data: str) -> None:
         if input() not in "yY":
             return
 
-    with file.open("w", encoding="latin-1") as file:
+    with file.open("w") as file:
         file.write(data)
-
-
-def parse_arguments() -> Namespace:
-    """Parses CLI arguments.
-
-    Returns
-    -------
-        Namespace: parsed arguments.
-    """
-    parser = ArgumentParser()
-    parser.add_argument("filename", help="file that contains data to process", type=Path)
-    parser.add_argument("-o", "--output", help="output file name", type=Path)
-    parser.add_argument("-a", "--author", help="author name", type=str)
-
-    return parser.parse_args()
 
 
 def main() -> None:  # noqa: D103
     data = get_input_data(args.filename)
     average, squared_error = count_error(data)
     absolute_error = squared_error * 2.57
-    relative_error = absolute_error / average * 100
-
-    result = format_template(
-        author=args.author,
-        average=f"{average:.2f}",
-        squared_error=f"{squared_error:.3f}",
-        absolute_error=f"{absolute_error:.2f}",
-        relative_error=f"{relative_error:.2f}",
-        length=len(data),
-        value=r"\gamma",
-    )
-
-    if args.output is None:
-        sys.stdout.write(result)
-    else:
-        handle_file_output(args.output, result)
+    relative_error = absolute_error / average * 100  # noqa: F841
 
 
 if __name__ == "__main__":
-    args = parse_arguments()
-    main()
+    config = parser.parse()
+    calc = Calculator.from_config(config)
+
+    data = get_input_data(config.filename)
+    document = calc.calculate(data).render()
+
+    if config.output == Path("."):
+        sys.stdout.write(document)
+    else:
+        handle_file_output(config.output, document)

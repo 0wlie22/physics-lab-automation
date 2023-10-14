@@ -19,6 +19,6 @@ class Renderer:
             loader=FileSystemLoader(os.path.abspath(templates_path)),
         )
 
-    def render(self, template_name: str, args: dict[str, Any]) -> str:
+    def render(self, template_name: str, **kwargs: dict[str, Any]) -> str:
         template = self._env.get_template(template_name)
-        return template.render(**args)
+        return template.render(kwargs)
