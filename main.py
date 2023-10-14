@@ -1,22 +1,22 @@
+import parser
+import sys
 from pathlib import Path
-from typing import Any
 
 import numpy as np
-import scipy
 
-TEMPLATE_FILE = "template.md"
-INPUT_FILE = "input.txt"
-RESULT_FILE = "result.md"
+from calculator import Calculator
 
 
 def count_error(data: list[float], *, check_gross_errors: bool = False) -> tuple[float, float]:
     """Count average and squared error for given data.
 
     Args:
+    ----
         data (list[float, ...]): data to count average and squared error.
         check_gross_errors (bool, optional): whether to check for rude values. Defaults to False.
 
     Returns:
+    -------
         tuple[float, float]: average and squared error.
     """
     # Finding the average
@@ -41,11 +41,13 @@ def delete_gross_errors(data: list[float], squared_error: float, average: float)
     """Delete gross errors from data.
 
     Args:
+    ----
         data (list[float, ...]): data to delete rude values from.
         squared_error (float): squared error.
         average (float): average error.
 
     Returns:
+    -------
         tuple[list[float, ...], bool]: data without rude values and whether rude values were found.
     """
     found_gross_error = False
@@ -58,110 +60,53 @@ def delete_gross_errors(data: list[float], squared_error: float, average: float)
     return data, found_gross_error
 
 
-def format_template(**values: dict[str, Any]) -> str:
-    """Format template with given values.
+def get_input_data(file: Path) -> list[float]:
+    """Get data and author from input file.
+
+    Input file should be in the following format:
+    <author>
+    <data1 data2 ...>
+
+    Returns
+    -------
+        list[float]: data from input file.
+
+    """
+    return [float(i) for i in file.read_text().strip().split(" ")]
+
+
+def handle_file_output(file: Path, data: str) -> None:
+    """Handle file output.
 
     Args:
-        **values: values to format template with.
-
-    Returns:
-        str: formatted template.
+    ----
+        file (Path): file to write data to.
+        data (str): data to write to file.
     """
-    formatted_template = f"<div align=right>{get_author()}</div>\n"
-
-    with Path.open(TEMPLATE_FILE, "r", encoding="latin-1") as file:
-        symbol = file.read(1)
-
-        while symbol:
-            if symbol == "<":
-                next_symbol = file.read(1)
-
-                if next_symbol == "<":
-                    formatted_template += "<"
-                else:
-                    key = ""
-                    while next_symbol != ">":
-                        key += next_symbol
-                        next_symbol = file.read(1)
-
-                    formatted_template += str(values.get(key))
-            else:
-                formatted_template += symbol
-
-            symbol = file.read(1)
-
-    return formatted_template
-
-
-def get_student_coef(count: int or np.inf, probability: float = 0.95) -> float:
-    """Get student coefficient for specified measurement count and confidence probability.
-
-    Args:
-        count (int | numpy.inf): measurement count.
-        probability (float): confidence probability.
-
-    Returns:
-        float: student coefficient.
-    """
-    return scipy.stats.t.ppf((1 + probability) / 2, count - 1)
-
-
-def get_input_data() -> list[float]:
-    """Get data and author from input file. Input file should be in the following format:
-    <author>
-    <data1, data2, ...>
-
-    Returns:
-        list[str]
-
-    """
-    with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
-        data = file.readlines()
-        return [float(i) for i in data[1].split(",")]
-
-
-def get_author() -> str:
-    """Get author from input file. Input file should be in the following format:
-    <author>
-    <data1, data2, ...>
-
-    Returns:
-        str
-
-    """
-    # return without \n
-    with Path.open(INPUT_FILE, "r", encoding="latin-1") as file:
-        data = file.readlines()
-        return data[0][:-1]
-
-
-def main() -> None:  # noqa: D103
-    data = get_input_data()
-    average, squared_error = count_error(data)
-    absolute_error = squared_error * 2.57
-    relative_error = absolute_error / average * 100
-
-    result = (
-        format_template(
-            average=f"{average:.2f}",
-            squared_error=f"{squared_error:.3f}",
-            absolute_error=f"{absolute_error:.2f}",
-            relative_error=f"{relative_error:.2f}",
-            length=len(data),
-            value=r"\gamma",
-        ),
-    )
-
-    result_file = Path(RESULT_FILE)
-    if result_file.exists():
-        print("result.md already exists. Overwrite? [y/n]", end=" ")
+    if file.exists():
+        print(f"{file} already exists. Overwrite? [y/n]", end=" ")
         if input() not in "yY":
             return
 
-    with result_file.open("w", encoding="latin-1") as file:
-        for line in result:
-            file.write(line)
+    with file.open("w") as file:
+        file.write(data)
+
+
+def main() -> None:  # noqa: D103
+    data = get_input_data(args.filename)
+    average, squared_error = count_error(data)
+    absolute_error = squared_error * 2.57
+    relative_error = absolute_error / average * 100  # noqa: F841
 
 
 if __name__ == "__main__":
-    main()
+    config = parser.parse()
+    calc = Calculator.from_config(config)
+
+    data = get_input_data(config.filename)
+    document = calc.calculate(data).render()
+
+    if config.output == Path("."):
+        sys.stdout.write(document)
+    else:
+        handle_file_output(config.output, document)
