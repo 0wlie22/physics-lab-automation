@@ -57,12 +57,15 @@ def delete_gross_errors(
     """
     found_gross_error = False
 
+    counter = 0
+
     for i in data:
-        # TODO(TheCrabilia): extract 2.29 to constant. What the name should be?
-        if abs(i - average) / squared_error > 2.29:
+        counter += 1
+        value = abs(i - average) / squared_error
+        if value > 2.6:
             data.remove(i)
             found_gross_error = True
-
+            print(f"Found gross error: {i}, index: {counter}")
     return data, found_gross_error
 
 
@@ -169,7 +172,7 @@ def main() -> None:  # noqa: D103
             absolute_error=f"{absolute_error:.2f}",
             relative_error=f"{relative_error:.2f}",
             length=START_LENGTH,
-            value=r"\Omega",
+            value="I",
         ),
     )
 
